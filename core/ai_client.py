@@ -83,17 +83,24 @@ class AIClient:
         if self.provider == "openai":
             return self.openai_client is not None
         elif self.provider in ("ollama", "ollama_cloud"):
+            # For cloud, just check if we have an API key
+            if self.ollama_api_key:
+                return True
             return self._check_ollama()
         return False
 
     def _check_ollama(self) -> bool:
         """Check if Ollama is running or cloud is accessible"""
         try:
+            headers = {}
+            if self.ollama_api_key:
+                headers["Authorization"] = f"Bearer {self.ollama_api_key}"
             # Cloud has longer timeout since it's remote
-            timeout = 10 if self.provider == "ollama_cloud" else 2
-            response = requests.get(f"{self.ollama_base_url}/api/tags", timeout=timeout)
+            timeout = 15 if self.provider == "ollama_cloud" else 2
+            response = requests.get(f"{self.ollama_base_url}/api/tags", headers=headers, timeout=timeout)
             return response.status_code == 200
-        except Exception:
+        except Exception as e:
+            print(f"Ollama health check failed: {e}")
             return False
 
     def _call_ollama(self, system_prompt: str, user_prompt: str, max_tokens: int = 500) -> str:
