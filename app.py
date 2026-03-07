@@ -479,6 +479,7 @@ app_ui = ui.page_fluid(
                     ui.div(
                         ui.div(ui.span("Recipient", class_="config-label"), ui.span("zl2268@cornell.edu", class_="config-value"), class_="config-row"),
                         ui.div(ui.span("SMTP Status", class_="config-label"), ui.output_ui("smtp_status"), class_="config-row"),
+                        ui.div(ui.span("AI Status", class_="config-label"), ui.output_ui("ai_debug_status"), class_="config-row"),
                     ),
 
                     # Threshold setting
@@ -871,6 +872,22 @@ def server(input, output, session):
         if email_system and email_system.is_configured():
             return ui.span("Connected", style="color:var(--risk-low);font-weight:600;")
         return ui.span("Not configured — set sender_email and sender_password in config.json", style="color:var(--risk-high);font-weight:500;font-size:0.88em;")
+
+    @output
+    @render.ui
+    def ai_debug_status():
+        import os
+        provider = os.environ.get("AI_PROVIDER", "not set")
+        model = os.environ.get("OLLAMA_MODEL", "not set")
+        url = os.environ.get("OLLAMA_BASE_URL", "not set")
+        api_key = os.environ.get("OLLAMA_API_KEY", "not set")
+        return ui.div(
+            ui.p(f"DEBUG - Provider: {provider}", style="font-size:12px;margin:4px 0;"),
+            ui.p(f"DEBUG - Model: {model}", style="font-size:12px;margin:4px 0;"),
+            ui.p(f"DEBUG - URL: {url}", style="font-size:12px;margin:4px 0;"),
+            ui.p(f"DEBUG - API Key: {'set' if api_key != 'not set' else 'not set'}", style="font-size:12px;margin:4px 0;"),
+            style="background:#f5f5f5;padding:12px;border-radius:4px;margin-top:8px;font-family:monospace;"
+        )
 
     @output
     @render.ui
