@@ -1,0 +1,16 @@
+zip_code,name,population,borough,elderly_pct,ac_pct,poverty_pct,green_space_pct,latitude,longitude
+10001,Chelsea,52000,Manhattan,14,82,12,18,40.7484,-74.0018
+10002,Lower East Side,78000,Manhattan,16,75,18,12,40.7150,-73.9843
+10003,Gramercy,25000,Manhattan,12,85,8,22,40.7365,-73.9845
+10004,Battery Park,18000,Manhattan,12,88,6,25,40.7033,-74.0170
+10005,Financial District,35000,Manhattan,10,90,5,20,40.7061,-74.0087
+11201,Downtown Brooklyn,55000,Brooklyn,13,78,15,14,40.6930,-73.9899
+11211,Williamsburg,85000,Brooklyn,8,72,16,10,40.7081,-73.9571
+11206,Bushwick,42000,Brooklyn,11,65,22,8,40.7050,-73.9213
+10301,Stapleton,45000,Staten Island,18,70,14,20,40.6362,-74.0789
+10314,New Springville,78000,Staten Island,20,68,12,25,40.5886,-74.1471
+11375,Forest Hills,55000,Queens,22,75,10,28,40.7213,-73.8444
+11354,Flushing,65000,Queens,19,78,14,18,40.7677,-73.8330
+10451,Mott Haven,38000,Bronx,18,45,32,5,40.8180,-73.9276
+10461,Parkchester,32000,Bronx,15,68,18,15,40.8333,-73.8607
+10453,University Heights,28000,Bronx,12,55,25,8,40.8583,-73.9108

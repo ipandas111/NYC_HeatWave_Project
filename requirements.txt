@@ -1,0 +1,16 @@
+# NYC Heat Wave Risk System
+# Requirements for running the application
+
+# Core dependencies
+pandas>=1.5.0
+numpy>=1.21.0
+
+# OpenAI for AI analysis
+openai>=1.0.0
+
+# Shiny for Dashboard
+shiny>=1.0.0
+
+# For running the app
+# pip install -r requirements.txt
+# shiny run app:app --reload
