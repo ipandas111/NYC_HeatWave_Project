@@ -83,13 +83,19 @@ class AIClient:
         # Always check env vars first
         env_provider = os.environ.get("AI_PROVIDER", self.provider)
         env_api_key = os.environ.get("OLLAMA_API_KEY", self.ollama_api_key)
+        env_model = os.environ.get("OLLAMA_MODEL", self.ollama_model)
+        env_url = os.environ.get("OLLAMA_BASE_URL", self.ollama_base_url)
+
+        print(f"DEBUG AI: provider={env_provider}, model={env_model}, url={env_url}, api_key={'set' if env_api_key else 'none'}")
 
         if env_provider == "openai":
             return self.openai_client is not None
         elif env_provider in ("ollama", "ollama_cloud"):
             # For cloud, check if we have an API key
             if env_api_key:
+                print(f"DEBUG AI: Ollama Cloud API key detected, should be available")
                 return True
+            print(f"DEBUG AI: No API key found")
             return self._check_ollama()
         return False
 
