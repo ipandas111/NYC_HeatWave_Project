@@ -31,3 +31,6 @@ Thumbs.db
 # Supabase (keep config template)
 supabase_config.json
 config.json
+
+# Keep example config for users
+# config.example.json is tracked

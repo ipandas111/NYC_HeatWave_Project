@@ -185,6 +185,69 @@ def fetch_live_weather() -> Dict:
     return {}
 
 
+def fetch_historical_weather(date_str: str) -> Dict:
+    """
+    Fetch historical weather for NYC on a specific date.
+
+    Uses Open-Meteo Archive API (free, no API key required).
+    Covers data from 1940 to 5 days ago.
+
+    Args:
+        date_str: Date in YYYY-MM-DD format
+
+    Returns:
+        Dict with temperature, humidity, apparent_temperature
+    """
+    if requests is None:
+        return {"error": "requests library not installed"}
+
+    lat, lon = 40.7128, -74.0060
+
+    url = "https://archive-api.open-meteo.com/v1/archive"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "start_date": date_str,
+        "end_date": date_str,
+        "daily": "temperature_2m_max,temperature_2m_min,temperature_2m_mean,apparent_temperature_max,apparent_temperature_min",
+        "hourly": "relative_humidity_2m",
+        "timezone": "America/New_York"
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=15)
+        if response.status_code == 200:
+            data = response.json()
+            daily = data.get("daily", {})
+            hourly = data.get("hourly", {})
+
+            temp_mean = daily.get("temperature_2m_mean", [None])[0]
+            temp_max = daily.get("temperature_2m_max", [None])[0]
+            apparent_max = daily.get("apparent_temperature_max", [None])[0]
+
+            # Average humidity from hourly data
+            humidity_values = hourly.get("relative_humidity_2m", [])
+            avg_humidity = sum(v for v in humidity_values if v is not None) / len(humidity_values) if humidity_values else None
+
+            # Use max temp as the representative daytime temperature
+            temp = temp_max if temp_max is not None else temp_mean
+            apparent = apparent_max if apparent_max is not None else temp
+
+            return {
+                "temperature": temp,
+                "humidity": round(avg_humidity) if avg_humidity is not None else 50,
+                "apparent_temperature": apparent,
+                "temp_mean": temp_mean,
+                "temp_max": temp_max,
+                "date": date_str,
+                "timestamp": date_str
+            }
+    except Exception as e:
+        print(f"Historical weather API error: {e}")
+
+    return {"error": f"Failed to fetch historical data for {date_str}"}
+
+
 # Example usage
 if __name__ == "__main__":
     # Test live weather

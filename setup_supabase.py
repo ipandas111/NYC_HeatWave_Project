@@ -24,19 +24,19 @@ def load_config():
 
 
 def create_tables(client: Client):
-    """Create database tables"""
+    """Create database tables using SQL"""
 
-    # Create neighborhoods table
-    client.table("neighborhoods").execute()
-    print("✓ Table 'neighborhoods' ready")
+    # neighborhoods table
+    client.table("neighborhoods").execute().data
+    print("✓ Checking neighborhoods table...")
 
-    # Create daily_risk table
-    client.table("daily_risk").execute()
-    print("✓ Table 'daily_risk' ready")
+    # daily_risk table
+    client.table("daily_risk").execute().data
+    print("✓ Checking daily_risk table...")
 
-    # Create live_weather table
-    client.table("live_weather").execute()
-    print("✓ Table 'live_weather' ready")
+    # live_weather table
+    client.table("live_weather").execute().data
+    print("✓ Checking live_weather table...")
 
 
 def insert_neighborhoods(client: Client):
@@ -60,15 +60,14 @@ def insert_neighborhoods(client: Client):
         {"zip_code": "10003", "name": "Greenwich Village", "borough": "Manhattan", "elderly_pct": 19.2, "ac_pct": 85.3, "poverty_pct": 8.5, "green_space_pct": 22.1, "population": 25000},
     ]
 
-    # Clear existing data
-    try:
-        client.table("neighborhoods").delete().neq("id", 0).execute()
-    except:
-        pass
-
-    # Insert new data
+    # Insert data
     for n in neighborhoods:
-        client.table("neighborhoods").insert(n).execute()
+        try:
+            client.table("neighborhoods").insert(n).execute()
+        except Exception as e:
+            # Table might already have data, try to handle
+            if "duplicate" not in str(e).lower():
+                print(f"Insert error: {e}")
 
     print(f"✓ Inserted {len(neighborhoods)} neighborhoods")
 
@@ -89,7 +88,7 @@ def insert_daily_risk(client: Client, days: int = 14):
     dates = [(datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days, 0, -1)]
 
     # Load neighborhoods
-    response = client.table("neighborhoods").select("*").execute()
+    response = client.table("neighborhoods").select("zip_code,borough,elderly_pct,ac_pct,poverty_pct,green_space_pct").execute()
     neighborhoods = response.data
 
     for n in neighborhoods:
@@ -144,7 +143,8 @@ def insert_daily_risk(client: Client, days: int = 14):
         try:
             client.table("daily_risk").insert(batch).execute()
         except Exception as e:
-            print(f"Batch {i//batch_size} error: {e}")
+            if "duplicate" not in str(e).lower():
+                print(f"Batch {i//batch_size} error: {e}")
 
     print(f"✓ Inserted {len(data)} daily risk records")
 
@@ -160,27 +160,80 @@ def main():
         config = load_config()
     except FileNotFoundError:
         print("❌ Please create supabase_config.json with your credentials")
-        print("   Get them from: https://supabase.com/dashboard")
         return
 
     # Connect to Supabase
     print("\n📡 Connecting to Supabase...")
-    client: Client = create_client(config["supabase_url"], config["supabase_anon_key"])
+    try:
+        client: Client = create_client(config["supabase_url"], config["supabase_anon_key"])
+        print("✓ Connected!")
+    except Exception as e:
+        print(f"❌ Connection failed: {e}")
+        return
 
-    # Create tables
-    print("\n📋 Creating tables...")
-    create_tables(client)
-
-    # Insert data
-    print("\n📊 Inserting neighborhood data...")
-    insert_neighborhoods(client)
-
-    print("\n📊 Inserting historical risk data...")
-    insert_daily_risk(client, days=14)
-
-    print("\n" + "=" * 50)
-    print("✅ Setup complete!")
+    print("\n⚠️ Please create tables in Supabase dashboard:")
+    print("   1. Go to SQL Editor")
+    print("   2. Run the SQL below:")
     print("=" * 50)
+
+    sql = """
+-- Neighborhoods table
+CREATE TABLE IF NOT EXISTS neighborhoods (
+    id SERIAL PRIMARY KEY,
+    zip_code VARCHAR(10) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    borough VARCHAR(50),
+    elderly_pct FLOAT,
+    ac_pct FLOAT,
+    poverty_pct FLOAT,
+    green_space_pct FLOAT,
+    population INTEGER,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Daily risk table
+CREATE TABLE IF NOT EXISTS daily_risk (
+    id SERIAL PRIMARY KEY,
+    zip_code VARCHAR(10) REFERENCES neighborhoods(zip_code),
+    date DATE NOT NULL,
+    temperature FLOAT,
+    humidity FLOAT,
+    heat_index FLOAT,
+    risk_score FLOAT,
+    risk_level VARCHAR(10),
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(zip_code, date)
+);
+
+-- Live weather table
+CREATE TABLE IF NOT EXISTS live_weather (
+    id SERIAL PRIMARY KEY,
+    temperature FLOAT,
+    humidity FLOAT,
+    apparent_temperature FLOAT,
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+"""
+    print(sql)
+    print("=" * 50)
+
+    print("\nAfter creating tables in Supabase, run this script again to insert data.")
+    print("\nOr press Enter to try inserting data now...")
+
+    # Try to insert data
+    try:
+        print("\n📊 Inserting neighborhood data...")
+        insert_neighborhoods(client)
+
+        print("\n📊 Inserting historical risk data...")
+        insert_daily_risk(client, days=14)
+
+        print("\n" + "=" * 50)
+        print("✅ Setup complete!")
+        print("=" * 50)
+    except Exception as e:
+        print(f"\n⚠️ Could not insert data yet: {e}")
+        print("Please create tables in Supabase SQL Editor first, then run again.")
 
 
 if __name__ == "__main__":
