@@ -68,6 +68,16 @@ class AIClient:
         if provider == "openai" and api_key and OPENAI_AVAILABLE:
             self.openai_client = OpenAI(api_key=api_key)
 
+        # Override with environment variables if set
+        if os.environ.get("OLLAMA_API_KEY"):
+            self.ollama_api_key = os.environ.get("OLLAMA_API_KEY")
+        if os.environ.get("OLLAMA_MODEL"):
+            self.ollama_model = os.environ.get("OLLAMA_MODEL")
+        if os.environ.get("OLLAMA_BASE_URL"):
+            self.ollama_base_url = os.environ.get("OLLAMA_BASE_URL")
+        if os.environ.get("AI_PROVIDER"):
+            self.provider = os.environ.get("AI_PROVIDER")
+
     def is_available(self) -> bool:
         """Check if AI client is available"""
         if self.provider == "openai":
