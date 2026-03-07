@@ -152,7 +152,10 @@ class AIClient:
 
     def _call_ai(self, system_prompt: str, user_prompt: str, max_tokens: int = 500) -> str:
         """Call AI using configured provider"""
-        if self.provider == "openai" and self.openai_client:
+        # Always check environment variable for provider
+        provider = os.environ.get("AI_PROVIDER", self.provider)
+
+        if provider == "openai" and self.openai_client:
             try:
                 response = self.openai_client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -166,7 +169,7 @@ class AIClient:
                 return response.choices[0].message.content
             except Exception as e:
                 print(f"OpenAI error: {e}")
-        elif self.provider in ("ollama", "ollama_cloud"):
+        elif provider in ("ollama", "ollama_cloud"):
             return self._call_ollama(system_prompt, user_prompt, max_tokens)
         return None
 
