@@ -80,11 +80,15 @@ class AIClient:
 
     def is_available(self) -> bool:
         """Check if AI client is available"""
-        if self.provider == "openai":
+        # Always check env vars first
+        env_provider = os.environ.get("AI_PROVIDER", self.provider)
+        env_api_key = os.environ.get("OLLAMA_API_KEY", self.ollama_api_key)
+
+        if env_provider == "openai":
             return self.openai_client is not None
-        elif self.provider in ("ollama", "ollama_cloud"):
-            # For cloud, just check if we have an API key
-            if self.ollama_api_key:
+        elif env_provider in ("ollama", "ollama_cloud"):
+            # For cloud, check if we have an API key
+            if env_api_key:
                 return True
             return self._check_ollama()
         return False
@@ -105,10 +109,16 @@ class AIClient:
 
     def _call_ollama(self, system_prompt: str, user_prompt: str, max_tokens: int = 500) -> str:
         """Call Ollama API (local or cloud)"""
+        # Always get latest config from environment
+        base_url = os.environ.get("OLLAMA_BASE_URL", self.ollama_base_url)
+        model = os.environ.get("OLLAMA_MODEL", self.ollama_model)
+        api_key = os.environ.get("OLLAMA_API_KEY", self.ollama_api_key)
+        provider = os.environ.get("AI_PROVIDER", self.provider)
+
         try:
-            url = f"{self.ollama_base_url}/api/chat"
+            url = f"{base_url}/api/chat"
             payload = {
-                "model": self.ollama_model,
+                "model": model,
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
@@ -119,11 +129,11 @@ class AIClient:
 
             # Add headers for cloud authentication
             headers = {}
-            if self.ollama_api_key:
-                headers["Authorization"] = f"Bearer {self.ollama_api_key}"
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
 
             # Cloud has longer timeout
-            timeout = 180 if self.provider == "ollama_cloud" else 120
+            timeout = 180 if provider == "ollama_cloud" else 120
 
             response = requests.post(url, json=payload, headers=headers, timeout=timeout)
             if response.status_code == 200:
