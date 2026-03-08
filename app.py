@@ -877,10 +877,10 @@ def server(input, output, session):
     @render.ui
     def ai_debug_status():
         import os
-        provider = os.environ.get("AI_PROVIDER", "not set")
-        model = os.environ.get("OLLAMA_MODEL", "not set")
-        url = os.environ.get("OLLAMA_BASE_URL", "not set")
-        api_key = os.environ.get("OLLAMA_API_KEY", "not set")
+        provider = os.environ.get("AI_PROVIDER") or os.environ.get("ai_provider") or "not set"
+        model = os.environ.get("OLLAMA_MODEL") or os.environ.get("ollama_model") or "not set"
+        url = os.environ.get("OLLAMA_BASE_URL") or os.environ.get("ollama_base_url") or "not set"
+        api_key = os.environ.get("OLLAMA_API_KEY") or os.environ.get("ollama_api_key") or "not set"
         return ui.div(
             ui.p(f"DEBUG - Provider: {provider}", style="font-size:12px;margin:4px 0;"),
             ui.p(f"DEBUG - Model: {model}", style="font-size:12px;margin:4px 0;"),

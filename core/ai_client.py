@@ -68,15 +68,15 @@ class AIClient:
         if provider == "openai" and api_key and OPENAI_AVAILABLE:
             self.openai_client = OpenAI(api_key=api_key)
 
-        # Override with environment variables if set
-        if os.environ.get("OLLAMA_API_KEY"):
-            self.ollama_api_key = os.environ.get("OLLAMA_API_KEY")
-        if os.environ.get("OLLAMA_MODEL"):
-            self.ollama_model = os.environ.get("OLLAMA_MODEL")
-        if os.environ.get("OLLAMA_BASE_URL"):
-            self.ollama_base_url = os.environ.get("OLLAMA_BASE_URL")
-        if os.environ.get("AI_PROVIDER"):
-            self.provider = os.environ.get("AI_PROVIDER")
+        # Override with environment variables if set (check both upper and lower case)
+        if os.environ.get("OLLAMA_API_KEY") or os.environ.get("ollama_api_key"):
+            self.ollama_api_key = os.environ.get("OLLAMA_API_KEY") or os.environ.get("ollama_api_key")
+        if os.environ.get("OLLAMA_MODEL") or os.environ.get("ollama_model"):
+            self.ollama_model = os.environ.get("OLLAMA_MODEL") or os.environ.get("ollama_model")
+        if os.environ.get("OLLAMA_BASE_URL") or os.environ.get("ollama_base_url"):
+            self.ollama_base_url = os.environ.get("OLLAMA_BASE_URL") or os.environ.get("ollama_base_url")
+        if os.environ.get("AI_PROVIDER") or os.environ.get("ai_provider"):
+            self.provider = os.environ.get("AI_PROVIDER") or os.environ.get("ai_provider")
 
     def is_available(self) -> bool:
         """Check if AI client is available"""
@@ -115,11 +115,13 @@ class AIClient:
 
     def _call_ollama(self, system_prompt: str, user_prompt: str, max_tokens: int = 500) -> str:
         """Call Ollama API (local or cloud)"""
-        # Always get latest config from environment
-        base_url = os.environ.get("OLLAMA_BASE_URL", self.ollama_base_url)
-        model = os.environ.get("OLLAMA_MODEL", self.ollama_model)
-        api_key = os.environ.get("OLLAMA_API_KEY", self.ollama_api_key)
-        provider = os.environ.get("AI_PROVIDER", self.provider)
+        # Always get latest config from environment (check multiple variable names)
+        base_url = os.environ.get("OLLAMA_BASE_URL") or os.environ.get("ollama_base_url") or self.ollama_base_url
+        model = os.environ.get("OLLAMA_MODEL") or os.environ.get("ollama_model") or self.ollama_model
+        api_key = os.environ.get("OLLAMA_API_KEY") or os.environ.get("ollama_api_key") or self.ollama_api_key
+        provider = os.environ.get("AI_PROVIDER") or os.environ.get("ai_provider") or self.provider
+
+        print(f"[DEBUG] _call_ollama: provider={provider}, model={model}, base_url={base_url}")
 
         try:
             url = f"{base_url}/api/chat"
