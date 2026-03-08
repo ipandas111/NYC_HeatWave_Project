@@ -121,6 +121,11 @@ class AIClient:
         api_key = os.environ.get("OLLAMA_API_KEY") or os.environ.get("ollama_api_key") or self.ollama_api_key
         provider = os.environ.get("AI_PROVIDER") or os.environ.get("ai_provider") or self.provider
 
+        # Hardcode URL for ollama_cloud if not set
+        if provider == "ollama_cloud" and (not base_url or base_url == "http://localhost:11434"):
+            base_url = "https://api.ollama.com"
+            print(f"[DEBUG] Using default ollama_cloud URL: {base_url}")
+
         print(f"[DEBUG] _call_ollama: provider={provider}, model={model}, base_url={base_url}")
 
         try:
